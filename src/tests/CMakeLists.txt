@@ -136,6 +136,7 @@ add_executable(tests
     video_core/spirv_builtin_capabilities.cpp
     video_core/spirv_min_max_denorms.cpp
     video_core/spirv_nan_safe_min_max.cpp
+    video_core/ssa_fixed_variables.cpp
     video_core/virtual_range_cache.cpp
     video_core/ocarina_upscale.cpp
     video_core/fsr4_support.cpp
