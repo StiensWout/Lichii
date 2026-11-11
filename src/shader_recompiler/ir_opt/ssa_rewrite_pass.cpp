@@ -20,6 +20,7 @@
 #include <map>
 #include <span>
 #include "common/container/unordered_map.h"
+#include "common/hash.h"
 #include <variant>
 #include <vector>
 
@@ -66,21 +67,6 @@ struct IndirectBranchVariable {
 
 using Variant = std::variant<IR::Reg, IR::Pred, ZeroFlagTag, SignFlagTag, CarryFlagTag, OverflowFlagTag, GotoVariable, IndirectBranchVariable>;
 
-struct GotoKey {
-    bool operator==(const GotoKey&) const noexcept = default;
-
-    IR::Block* block;
-    u32 index;
-};
-
-struct GotoKeyHash {
-    size_t operator()(const GotoKey& key) const noexcept {
-        size_t seed{std::hash<IR::Block*>{}(key.block)};
-        Common::HashCombine(seed, key.index);
-        return seed;
-    }
-};
-
 // Every read walks back through blocks and looks up or writes a definition in each. Fixed-count
 // variables keep their definitions in the blocks: node-based maps per variable made those lookups
 // and their allocations a large part of the pass. Definitions are copied out as soon as they are
@@ -101,11 +87,11 @@ struct DefTable {
     }
 
     const IR::Value& Def(IR::Block* block, GotoVariable variable) {
-        const auto it{goto_vars.find(GotoKey{block, variable.index})};
+        const auto it{goto_vars.find({block, variable.index})};
         return it != goto_vars.end() ? it->second : empty;
     }
     void SetDef(IR::Block* block, GotoVariable variable, const IR::Value& value) {
-        goto_vars.insert_or_assign(GotoKey{block, variable.index}, value);
+        goto_vars.insert_or_assign({block, variable.index}, value);
     }
 
     template <typename Tag>
@@ -119,7 +105,7 @@ struct DefTable {
         block->SetSsaValue(Tag::slot, value);
     }
 
-    Common::unordered_map<GotoKey, IR::Value, GotoKeyHash> goto_vars;
+    Common::unordered_map<std::pair<IR::Block*, u32>, IR::Value, Common::PairHash> goto_vars;
     const IR::Value empty{};
 };
 

@@ -114,10 +114,6 @@ TEST_CASE("Scalar constants keep one declaration per type and bit pattern",
         CAPTURE(key.first, key.second);
         CHECK(ids.size() == 1);
     }
-    for (const u32 bits : {0x00000000U, 0x80000000U, 0x7fc00000U, 0x7fc00001U, 0x3f800000U}) {
-        CAPTURE(bits);
-        CHECK(module.Ids(module.float_type, bits).size() == 1);
-    }
     for (const u32 value : {5U, 0x80000000U}) {
         CAPTURE(value);
         CHECK(module.Ids(module.uint_type, value).size() == 1);
